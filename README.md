@@ -1,6 +1,3 @@
-Here’s a clean and professional `README.md` for your project based on the provided code :
-
----
 
 # 🤖 AI Pathfinding Agent — Dynamic 2D Grid
 
