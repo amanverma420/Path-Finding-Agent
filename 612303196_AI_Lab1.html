@@ -1,0 +1,1132 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Pathfinding Agent — Aman Verma | 612303196</title>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg:        #f5f0eb;
+    --panel:     #1e2330;
+    --panel2:    #252c3d;
+    --border:    #d4ccc4;
+    --border-d:  #2e3649;
+    --accent:    #d97706;
+    --blue:      #2563eb;
+    --green:     #16a34a;
+    --red:       #dc2626;
+    --text:      #1c1917;
+    --text-p:    #e8e2d9;
+    --muted:     #6b7280;
+    --muted-d:   #9ca3af;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    background: var(--panel);
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    flex-shrink: 0;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  .hdr-left { display: flex; align-items: center; gap: 12px; }
+
+  .hdr-pip {
+    width: 9px; height: 9px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .hdr-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-p);
+  }
+
+  .hdr-sub {
+    font-size: 10.5px;
+    color: var(--muted-d);
+    margin-top: 1px;
+  }
+
+  .hdr-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  .body-wrap {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .left-panel {
+    width: 238px;
+    min-width: 238px;
+    background: var(--panel);
+    border-right: 1px solid var(--border-d);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sec {
+    padding: 11px 13px;
+    border-bottom: 1px solid var(--border-d);
+  }
+
+  .sec-hd {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 9px;
+  }
+
+  label {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--muted-d);
+    margin-bottom: 3px;
+  }
+
+  select, input[type="number"] {
+    width: 100%;
+    background: #131823;
+    border: 1px solid var(--border-d);
+    color: var(--text-p);
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    outline: none;
+    margin-bottom: 7px;
+    appearance: none;
+    transition: border-color 0.15s;
+  }
+  select:focus, input[type="number"]:focus { border-color: var(--accent); }
+
+  .row2 { display: flex; gap: 6px; }
+  .row2 input { width: 50%; }
+
+  .row2-hd {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 2px;
+  }
+  .row2-hd span {
+    width: 50%;
+    font-size: 9.5px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--muted-d);
+  }
+
+  .btn {
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: filter 0.12s, transform 0.08s;
+  }
+  .btn:hover:not(:disabled) { filter: brightness(1.13); }
+  .btn:active:not(:disabled) { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.32; cursor: not-allowed; }
+  .btn-go     { background: #16a34a; color: #fff; }
+  .btn-pause  { background: #d97706; color: #fff; }
+  .btn-reset  { background: #374151; color: var(--text-p); }
+
+  .speed-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .speed-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .leg-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+    font-size: 11px;
+    color: var(--text-p);
+  }
+  .leg-sw {
+    width: 15px; height: 15px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .heat-bar { display: flex; gap: 2px; margin-top: 5px; }
+  .heat-seg { flex:1; height: 9px; border-radius: 2px; }
+  .heat-nums {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8.5px;
+    color: var(--muted-d);
+  }
+
+  .hint {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    color: var(--accent);
+    padding: 5px 7px;
+    background: rgba(217,119,6,0.1);
+    border: 1px solid rgba(217,119,6,0.22);
+    border-radius: 3px;
+    margin-top: 4px;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .centre {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  .grid-caption {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-align: center;
+  }
+
+  #gridCanvas {
+    border: 2px solid #c5bdb4;
+    border-radius: 2px;
+    display: block;
+    cursor: crosshair;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.09);
+    image-rendering: crisp-edges;
+  }
+
+  .right-panel {
+    width: 228px;
+    min-width: 228px;
+    background: var(--panel);
+    border-left: 1px solid var(--border-d);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .algo-tag {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-bottom: 7px;
+  }
+
+  .algo-props {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted-d);
+    line-height: 1.85;
+  }
+
+  .log-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .log-hd {
+    padding: 9px 13px;
+    border-top: 1px solid var(--border-d);
+    border-bottom: 1px solid var(--border-d);
+    flex-shrink: 0;
+  }
+
+  .log-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 7px 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    line-height: 1.65;
+  }
+
+  .log-entry         { color: var(--muted-d); }
+  .log-entry.info    { color: #60a5fa; }
+  .log-entry.success { color: #4ade80; }
+  .log-entry.warn    { color: #fbbf24; }
+  .log-entry.error   { color: #f87171; }
+
+  .stats-box {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    background: #131823;
+    border-top: 1px solid var(--border-d);
+  }
+
+  .stats-hd {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 7px;
+  }
+
+  .sgrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+
+  .sc {
+    background: var(--panel);
+    border: 1px solid var(--border-d);
+    border-radius: 4px;
+    padding: 6px 8px;
+    text-align: center;
+  }
+
+  .sv {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--text-p);
+    line-height: 1.1;
+  }
+  .sv.hi { color: var(--accent); }
+
+  .sl {
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    color: var(--muted-d);
+    text-transform: uppercase;
+    margin-top: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .statusbar {
+    height: 34px;
+    background: var(--panel);
+    border-top: 1px solid var(--border-d);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--muted-d);
+    flex-shrink: 0;
+  }
+
+  .sdot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .sdot.idle    { background: var(--muted-d); }
+  .sdot.running { background: var(--accent); animation: blink 1s infinite; }
+  .sdot.done    { background: #4ade80; }
+  .sdot.warn    { background: #fbbf24; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-d); border-radius: 2px; }
+  </style>
+  </head>
+  <body>
+
+  <header>
+    <div class="hdr-left">
+      <div class="hdr-pip"></div>
+      <div>
+        <div class="hdr-title">AI Pathfinding Agent — Dynamic 2D Grid</div>
+        <div class="hdr-sub">COEP Technological University &nbsp;·&nbsp; Dept. Computer Science &amp; Engineering</div>
+      </div>
+    </div>
+    <div class="hdr-id">Aman Verma &nbsp;|&nbsp; MIS 612303196</div>
+  </header>
+
+  <div class="body-wrap">
+
+    <div class="left-panel">
+
+      <div class="sec">
+        <div class="sec-hd">Algorithm</div>
+        <label>Search Method</label>
+        <select id="algoSelect">
+          <option value="astar">A* Search (A-Star)</option>
+          <option value="bfs">Breadth-First Search (BFS)</option>
+          <option value="dfs">Depth-First Search (DFS)</option>
+          <option value="ucs">Uniform Cost Search (UCS)</option>
+          <option value="greedy">Greedy Best-First Search</option>
+        </select>
+        <div id="algoDesc" style="font-size:10.5px;color:var(--muted-d);line-height:1.55">
+          Combines g(n)+h(n). Finds optimal path using Manhattan distance heuristic.
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-hd">Grid Positions</div>
+        <label>Start Cell</label>
+        <div class="row2-hd"><span>Row (0-24)</span><span>Col (0-24)</span></div>
+        <div class="row2">
+          <input type="number" id="startRow" value="0" min="0" max="24">
+          <input type="number" id="startCol" value="0" min="0" max="24">
+        </div>
+        <label>Goal Cell</label>
+        <div class="row2-hd"><span>Row (0-24)</span><span>Col (0-24)</span></div>
+        <div class="row2">
+          <input type="number" id="goalRow" value="24" min="0" max="24">
+          <input type="number" id="goalCol" value="24" min="0" max="24">
+        </div>
+        <div class="hint" id="clickMode">Click grid to set Start, then Goal</div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-hd">Controls</div>
+        <button class="btn btn-go"    id="btnStart" onclick="startSim()">▶ &nbsp;Start Simulation</button>
+        <button class="btn btn-pause" id="btnPause" onclick="togglePause()" disabled>⏸ &nbsp;Pause</button>
+        <button class="btn btn-reset"               onclick="resetSim()">↺ &nbsp;Reset</button>
+      </div>
+
+      <div class="sec">
+        <div class="sec-hd">Animation Speed</div>
+        <div class="speed-row">
+          <span style="font-size:10px;color:var(--muted-d)">Slow</span>
+          <input type="range" id="speedSlider" min="50" max="950" value="200" oninput="updateSpeed()">
+          <span style="font-size:10px;color:var(--muted-d)">Fast</span>
+        </div>
+        <div style="text-align:right;margin-top:2px">
+          <span class="speed-num" id="speedVal">800ms</span>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-hd">Legend</div>
+        <div class="leg-item"><div class="leg-sw" style="background:#ffffff;border-color:#d4ccc4"></div>Free cell</div>
+        <div class="leg-item"><div class="leg-sw" style="background:#374151"></div>Blocked obstacle</div>
+        <div class="leg-item"><div class="leg-sw" style="background:#2563eb"></div>Start cell &nbsp;<b style="font-size:10px">(S)</b></div>
+        <div class="leg-item"><div class="leg-sw" style="background:#d97706"></div>Goal cell &nbsp;<b style="font-size:10px">(G)</b></div>
+        <div class="leg-item"><div class="leg-sw" style="background:#7c3aed"></div>Agent (current position)</div>
+        <div class="leg-item"><div class="leg-sw" style="background:#16a34a"></div>Optimal path (end)</div>
+
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted-d);margin-top:7px">Visit Heatmap</div>
+        <div class="heat-bar">
+          <div class="heat-seg" style="background:#fca5a5"></div>
+          <div class="heat-seg" style="background:#f87171"></div>
+          <div class="heat-seg" style="background:#ef4444"></div>
+          <div class="heat-seg" style="background:#b91c1c"></div>
+          <div class="heat-seg" style="background:#7f1d1d"></div>
+        </div>
+        <div class="heat-nums">
+          <span>1×</span><span>2×</span><span>3×</span><span>4×</span><span>5×+</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="centre">
+      <div class="grid-caption">
+        25 × 25 GRID &nbsp;·&nbsp; 30% OBSTACLE DENSITY &nbsp;·&nbsp; 4-DIRECTIONAL MOVEMENT
+      </div>
+      <canvas id="gridCanvas"></canvas>
+    </div>
+
+    <div class="right-panel">
+
+      <div class="sec">
+        <div class="sec-hd">Algorithm Info</div>
+        <div id="algoNameTag" class="algo-tag">A*</div>
+        <div class="algo-props" id="algoProps">
+          Complete:&nbsp; Yes ✓<br>
+          Optimal:&nbsp;&nbsp; Yes ✓<br>
+          Structure: Priority Queue<br>
+          Heuristic: Manhattan<br>
+          Formula:&nbsp;&nbsp; f = g(n) + h(n)
+        </div>
+      </div>
+
+      <div class="log-wrap">
+        <div class="log-hd">
+          <div class="sec-hd" style="margin-bottom:0">Event Log</div>
+        </div>
+        <div class="log-area" id="logArea"></div>
+      </div>
+
+      <div class="stats-box">
+        <div class="stats-hd">Run Statistics</div>
+        <div class="sgrid">
+          <div class="sc">
+            <div class="sv" id="statSteps">0</div>
+            <div class="sl">Steps Taken</div>
+          </div>
+          <div class="sc">
+            <div class="sv" id="statVisited">0</div>
+            <div class="sl">Cells Visited</div>
+          </div>
+          <div class="sc">
+            <div class="sv hi" id="statOptimal">—</div>
+            <div class="sl">Optimal Path</div>
+          </div>
+          <div class="sc">
+            <div class="sv" id="statExplored">0</div>
+            <div class="sl">Nodes Explored</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="statusbar">
+    <div class="sdot idle" id="sdot"></div>
+    <span id="statusTxt">Ready — pick an algorithm, set Start &amp; Goal, then press Start.</span>
+  </div>
+
+  <script>
+
+  const ROWS = 25, COLS = 25, TOTAL = 625;
+  const NBLOCKED = Math.round(TOTAL * 0.30);   // 188 cells blocked
+  const DIRS = [[-1,0],[1,0],[0,-1],[0,1]];    // up down left right
+
+  const canvas = document.getElementById('gridCanvas');
+  const ctx    = canvas.getContext('2d');
+
+
+  let CELL = 22;           // pixel size of one cell
+
+  let grid       = [];     // [row][col] → 0 free | 1 blocked
+  let visitCount = [];     // [row][col] → int (for heatmap)
+  let agentPos   = {r:0, c:0};
+  let startPos   = {r:0, c:0};
+  let goalPos    = {r:24, c:24};
+  let optimalPath = [];    // shown when goal reached
+
+  let running       = false;
+  let paused        = false;
+  let simTimer      = null;
+  let stepDelay     = 800;
+  let stepCount     = 0;
+  let uniqueVisited = new Set();
+  let totalExplored = 0;
+  let clickPhase    = 0;   // 0 = place start, 1 = place goal, 2 = done
+  let lastAlgo      = 'astar';
+
+  function resizeCanvas() {
+    const wrap  = canvas.parentElement;
+    const avail = Math.min(wrap.clientWidth - 28, wrap.clientHeight - 52);
+    CELL = Math.floor(avail / ROWS);
+    if (CELL < 14) CELL = 14;
+    canvas.width  = CELL * COLS;
+    canvas.height = CELL * ROWS;
+    drawGrid();
+  }
+
+  function init() {
+    grid       = Array.from({length: ROWS}, () => new Array(COLS).fill(0));
+    visitCount = Array.from({length: ROWS}, () => new Array(COLS).fill(0));
+    optimalPath   = [];
+    stepCount     = 0;
+    uniqueVisited = new Set();
+    totalExplored = 0;
+    agentPos = {r: startPos.r, c: startPos.c};
+    generateObstacles();
+    updateStats();
+    drawGrid();
+  }
+
+
+  function generateObstacles() {
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        grid[r][c] = 0;
+
+    const exempt = new Set([
+      startPos.r * COLS + startPos.c,
+      goalPos.r  * COLS + goalPos.c,
+      agentPos.r * COLS + agentPos.c
+    ]);
+
+    const pool = [];
+    for (let i = 0; i < TOTAL; i++)
+      if (!exempt.has(i)) pool.push(i);
+
+    const needed = Math.min(NBLOCKED, pool.length);
+
+    function pickBlocked() {
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          grid[r][c] = 0;
+
+      for (let i = 0; i < needed; i++) {
+        const j   = i + Math.floor(Math.random() * (pool.length - i));
+        const tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+        const idx = pool[i];
+        grid[Math.floor(idx / COLS)][idx % COLS] = 1;
+      }
+    }
+
+    pickBlocked();
+
+    let tries = 0;
+    while (!isReachable(agentPos, goalPos) && tries < 30) {
+      pickBlocked();
+      tries++;
+    }
+    if (tries > 0) log('Re-rolled obstacles ' + tries + ' time(s) for connectivity.', 'warn');
+  }
+
+  function resetObstacles() { generateObstacles(); }
+
+  function isReachable(from, to) {
+    if (grid[to.r][to.c] === 1) return false;
+    const vis = new Uint8Array(TOTAL);
+    const q   = [from.r * COLS + from.c];
+    vis[q[0]] = 1;
+    while (q.length) {
+      const cur = q.shift();
+      const r = Math.floor(cur / COLS), c = cur % COLS;
+      if (r === to.r && c === to.c) return true;
+      for (const [dr, dc] of DIRS) {
+        const nr = r+dr, nc = c+dc, nk = nr*COLS+nc;
+        if (nr>=0&&nr<ROWS&&nc>=0&&nc<COLS && !vis[nk] && grid[nr][nc]===0) {
+          vis[nk] = 1; q.push(nk);
+        }
+      }
+    }
+    return false;
+  }
+
+  function manhattan(a, b) { return Math.abs(a.r-b.r) + Math.abs(a.c-b.c); }
+
+  function reconstructPath(parent, start, goal) {
+    const path = [];
+    let cur = goal.r * COLS + goal.c;
+    const sk = start.r * COLS + start.c;
+    while (cur !== sk) {
+      path.unshift({r: Math.floor(cur/COLS), c: cur%COLS});
+      cur = parent[cur];
+      if (cur === undefined || cur < 0) return [];
+    }
+    path.unshift({r: start.r, c: start.c});
+    return path;
+  }
+
+  function getNextStep(from, to, algo) {
+    switch (algo) {
+      case 'bfs':    return bfsNext(from, to);
+      case 'dfs':    return dfsNext(from, to);
+      case 'ucs':    return ucsNext(from, to);
+      case 'greedy': return greedyNext(from, to);
+      default:       return astarNext(from, to);  // 'astar'
+    }
+  }
+
+  function bfsNext(from, to) {
+    const parent = new Int32Array(TOTAL).fill(-1);
+    const sk = from.r * COLS + from.c;
+    parent[sk] = sk;
+    const queue = [sk];
+    let explored = 0;
+
+    while (queue.length) {
+      const cur = queue.shift();
+      explored++;
+      const r = Math.floor(cur/COLS), c = cur%COLS;
+      if (r === to.r && c === to.c) {
+        totalExplored += explored;
+        const path = reconstructPath(parent, from, to);
+        return path.length > 1 ? path[1] : null;
+      }
+      for (const [dr,dc] of DIRS) {
+        const nr=r+dr, nc=c+dc, nk=nr*COLS+nc;
+        if (nr>=0&&nr<ROWS&&nc>=0&&nc<COLS && parent[nk]===-1 && grid[nr][nc]===0) {
+          parent[nk] = cur;
+          queue.push(nk);
+        }
+      }
+    }
+    return null;
+  }
+
+
+  function dfsNext(from, to) {
+    const parent  = new Int32Array(TOTAL).fill(-1);
+    const visited = new Uint8Array(TOTAL);
+    const sk = from.r * COLS + from.c;
+    parent[sk] = sk; visited[sk] = 1;
+    const stack = [sk];
+    let explored = 0, found = false;
+
+    while (stack.length) {
+      const cur = stack.pop();
+      explored++;
+      const r = Math.floor(cur/COLS), c = cur%COLS;
+      if (r === to.r && c === to.c) { found = true; break; }
+      for (const [dr,dc] of DIRS) {
+        const nr=r+dr, nc=c+dc, nk=nr*COLS+nc;
+        if (nr>=0&&nr<ROWS&&nc>=0&&nc<COLS && !visited[nk] && grid[nr][nc]===0) {
+          visited[nk] = 1; parent[nk] = cur; stack.push(nk);
+        }
+      }
+    }
+
+    if (!found) return null;
+    totalExplored += explored;
+    const path = reconstructPath(parent, from, to);
+    return path.length > 1 ? path[1] : null;
+  }
+
+  function ucsNext(from, to) {
+    const dist   = new Float32Array(TOTAL).fill(Infinity);
+    const parent = new Int32Array(TOTAL).fill(-1);
+    const sk = from.r * COLS + from.c;
+    dist[sk] = 0; parent[sk] = sk;
+    const pq = [{k: sk, g: 0}];
+    let explored = 0;
+
+    while (pq.length) {
+      pq.sort((a,b) => a.g - b.g);
+      const {k: cur, g: cg} = pq.shift();
+      explored++;
+      if (dist[cur] < cg) continue;  // stale entry, skip
+
+      const r = Math.floor(cur/COLS), c = cur%COLS;
+      if (r === to.r && c === to.c) {
+        totalExplored += explored;
+        const path = reconstructPath(parent, from, to);
+        return path.length > 1 ? path[1] : null;
+      }
+      for (const [dr,dc] of DIRS) {
+        const nr=r+dr, nc=c+dc, nk=nr*COLS+nc;
+        if (nr>=0&&nr<ROWS&&nc>=0&&nc<COLS && grid[nr][nc]===0) {
+          const ng = cg + 1;
+          if (ng < dist[nk]) { dist[nk]=ng; parent[nk]=cur; pq.push({k:nk,g:ng}); }
+        }
+      }
+    }
+    return null;
+  }
+
+  function greedyNext(from, to) {
+    const visited = new Uint8Array(TOTAL);
+    const parent  = new Int32Array(TOTAL).fill(-1);
+    const sk = from.r * COLS + from.c;
+    visited[sk] = 1; parent[sk] = sk;
+    const pq = [{k: sk, h: manhattan(from, to)}];
+    let explored = 0;
+
+    while (pq.length) {
+      pq.sort((a,b) => a.h - b.h);
+      const {k: cur} = pq.shift();
+      explored++;
+      const r = Math.floor(cur/COLS), c = cur%COLS;
+      if (r === to.r && c === to.c) {
+        totalExplored += explored;
+        const path = reconstructPath(parent, from, to);
+        return path.length > 1 ? path[1] : null;
+      }
+      for (const [dr,dc] of DIRS) {
+        const nr=r+dr, nc=c+dc, nk=nr*COLS+nc;
+        if (nr>=0&&nr<ROWS&&nc>=0&&nc<COLS && !visited[nk] && grid[nr][nc]===0) {
+          visited[nk]=1; parent[nk]=cur;
+          pq.push({k:nk, h:manhattan({r:nr,c:nc}, to)});
+        }
+      }
+    }
+    return null;
+  }
+
+  function astarNext(from, to) {
+    const gCost  = new Float32Array(TOTAL).fill(Infinity);
+    const parent = new Int32Array(TOTAL).fill(-1);
+    const closed = new Uint8Array(TOTAL);
+    const sk = from.r * COLS + from.c;
+    gCost[sk] = 0; parent[sk] = sk;
+    const pq = [{k: sk, f: manhattan(from, to)}];
+    let explored = 0;
+
+    while (pq.length) {
+      pq.sort((a,b) => a.f - b.f);
+      const {k: cur} = pq.shift();
+      if (closed[cur]) continue;
+      closed[cur] = 1; explored++;
+
+      const r = Math.floor(cur/COLS), c = cur%COLS;
+      if (r === to.r && c === to.c) {
+        totalExplored += explored;
+        const path = reconstructPath(parent, from, to);
+        return path.length > 1 ? path[1] : null;
+      }
+      for (const [dr,dc] of DIRS) {
+        const nr=r+dr, nc=c+dc, nk=nr*COLS+nc;
+        if (nr>=0&&nr<ROWS&&nc>=0&&nc<COLS && !closed[nk] && grid[nr][nc]===0) {
+          const ng = gCost[cur] + 1;
+          if (ng < gCost[nk]) {
+            gCost[nk] = ng; parent[nk] = cur;
+            pq.push({k:nk, f: ng + manhattan({r:nr,c:nc}, to)});
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  function astarFull(from, to) {
+    const gCost  = new Float32Array(TOTAL).fill(Infinity);
+    const parent = new Int32Array(TOTAL).fill(-1);
+    const closed = new Uint8Array(TOTAL);
+    const sk = from.r * COLS + from.c;
+    gCost[sk] = 0; parent[sk] = sk;
+    const pq = [{k: sk, f: manhattan(from, to)}];
+
+    while (pq.length) {
+      pq.sort((a,b) => a.f - b.f);
+      const {k: cur} = pq.shift();
+      if (closed[cur]) continue;
+      closed[cur] = 1;
+      const r = Math.floor(cur/COLS), c = cur%COLS;
+      if (r === to.r && c === to.c) return reconstructPath(parent, from, to);
+      for (const [dr,dc] of DIRS) {
+        const nr=r+dr, nc=c+dc, nk=nr*COLS+nc;
+        if (nr>=0&&nr<ROWS&&nc>=0&&nc<COLS && !closed[nk] && grid[nr][nc]===0) {
+          const ng = gCost[cur] + 1;
+          if (ng < gCost[nk]) {
+            gCost[nk] = ng; parent[nk] = cur;
+            pq.push({k:nk, f: ng + manhattan({r:nr,c:nc}, to)});
+          }
+        }
+      }
+    }
+    return [];
+  }
+
+  function computeOptimalPath(from, to) { return astarFull(from, to); }
+
+  function simStep() {
+    if (paused || !running) return;
+
+    const algo = document.getElementById('algoSelect').value;
+    const next = getNextStep(agentPos, goalPos, algo);
+
+    if (!next) {
+      log('No path found — re-randomising obstacles.', 'warn');
+      setStatus('No path found, re-randomising obstacles.', 'warn');
+      resetObstacles();
+      drawGrid();
+      scheduleNext();
+      return;
+    }
+
+    agentPos = {r: next.r, c: next.c};
+    stepCount++;
+
+    visitCount[agentPos.r][agentPos.c]++;
+    uniqueVisited.add(agentPos.r * COLS + agentPos.c);
+
+    if (agentPos.r === goalPos.r && agentPos.c === goalPos.c) {
+      running = false;
+
+      optimalPath = computeOptimalPath(startPos, goalPos);
+      const optLen = optimalPath.length > 0 ? optimalPath.length - 1 : 0;
+
+      updateStats(optLen);  
+      drawGrid();
+
+      const msg = 'Goal reached in ' + stepCount + ' steps!  Optimal path: ' + optLen + ' moves.';
+      setStatus('✓  ' + msg, 'done');
+      log(msg, 'success');
+      log('Green path = optimal route on final grid layout.', 'info');
+      setButtonState(false);
+      document.getElementById('algoSelect').disabled = false;
+      return;
+    }
+
+    resetObstacles();
+    updateStats();
+    drawGrid();
+    scheduleNext();
+  }
+
+  function scheduleNext() { simTimer = setTimeout(simStep, stepDelay); }
+
+  const V_COLORS = ['#fca5a5','#f87171','#ef4444','#b91c1c','#7f1d1d'];
+
+  function drawGrid() {
+    const pathSet = new Set(optimalPath.map(p => p.r * COLS + p.c));
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const x = c * CELL, y = r * CELL;
+        const k = r * COLS + c;
+
+        const isStart   = r===startPos.r  && c===startPos.c;
+        const isGoal    = r===goalPos.r   && c===goalPos.c;
+        const isAgent   = r===agentPos.r  && c===agentPos.c;
+        const isBlocked = grid[r][c] === 1;
+        const inPath    = pathSet.has(k) && optimalPath.length > 0;
+        const vc        = visitCount[r][c];
+
+        let fill;
+        if      (isAgent)   fill = '#7c3aed';                          // purple  — agent
+        else if (isGoal)    fill = '#d97706';                          // amber   — goal
+        else if (isStart)   fill = '#2563eb';                          // blue    — start
+        else if (inPath)    fill = '#16a34a';                          // green   — optimal path
+        else if (isBlocked) fill = '#374151';                          // grey    — wall
+        else if (vc > 0)    fill = V_COLORS[Math.min(vc, 5) - 1];     // red     — heatmap
+        else                fill = '#ffffff';                          // white   — free unvisited
+
+        ctx.fillStyle = fill;
+        ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
+
+        ctx.strokeStyle = '#cfc8be';
+        ctx.lineWidth   = 1;
+        ctx.strokeRect(x + 0.5, y + 0.5, CELL - 1, CELL - 1);
+
+        const fs = Math.max(9, Math.floor(CELL * 0.40));
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+        const cx = x + CELL/2, cy = y + CELL/2;
+
+        if (isAgent) {
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(cx, cy, Math.max(3, CELL * 0.27), 0, Math.PI*2);
+          ctx.fill();
+
+        } else if (isGoal && !isAgent) {
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold ' + fs + 'px monospace';
+          ctx.fillText('G', cx, cy);
+
+        } else if (isStart && !isAgent) {
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold ' + fs + 'px monospace';
+          ctx.fillText('S', cx, cy);
+        }
+      }
+    }
+  }
+
+  function startSim() {
+    if (running) return;
+    running  = true; paused = false;
+    lastAlgo = document.getElementById('algoSelect').value;
+    document.getElementById('algoSelect').disabled = true;
+    setButtonState(true);
+    setStatus('Running — ' + algoLabel(lastAlgo), 'running');
+    log('Simulation started: ' + algoLabel(lastAlgo), 'info');
+    scheduleNext();
+  }
+
+  function togglePause() {
+    if (!running && !paused) return;
+    paused = !paused;
+    const btn = document.getElementById('btnPause');
+    btn.innerHTML = paused ? '▶ &nbsp;Resume' : '⏸ &nbsp;Pause';
+    if (!paused) {
+      setStatus('Resumed — ' + algoLabel(lastAlgo), 'running');
+      scheduleNext();
+    } else {
+      setStatus('Paused.', 'idle');
+      clearTimeout(simTimer);
+    }
+  }
+
+  function resetSim() {
+    clearTimeout(simTimer);
+    running = false; paused = false;
+    document.getElementById('algoSelect').disabled = false;
+    document.getElementById('btnPause').innerHTML  = '⏸ &nbsp;Pause';
+
+    startPos = {
+      r: clamp(parseInt(document.getElementById('startRow').value)||0, 0, 24),
+      c: clamp(parseInt(document.getElementById('startCol').value)||0, 0, 24)
+    };
+    goalPos = {
+      r: clamp(parseInt(document.getElementById('goalRow').value)||24, 0, 24),
+      c: clamp(parseInt(document.getElementById('goalCol').value)||24, 0, 24)
+    };
+
+    clickPhase = 0;
+    document.getElementById('clickMode').textContent = 'Click grid to set Start, then Goal';
+    setButtonState(false);
+    init();
+    setStatus('Grid reset. Ready to run.', 'idle');
+    log('--- Reset ---', 'warn');
+  }
+
+  function updateSpeed() {
+    const v   = parseInt(document.getElementById('speedSlider').value);
+    stepDelay = 1000 - v;   // slider right = fast = small delay
+    document.getElementById('speedVal').textContent = stepDelay + 'ms';
+  }
+
+  function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+  function setButtonState(on) {
+    document.getElementById('btnStart').disabled = on;
+    document.getElementById('btnPause').disabled = !on;
+  }
+
+  function updateStats(optLen) {
+    document.getElementById('statSteps').textContent    = stepCount;
+    document.getElementById('statVisited').textContent  = uniqueVisited.size;
+    document.getElementById('statExplored').textContent = totalExplored;
+    if (optLen !== undefined)
+      document.getElementById('statOptimal').textContent = optLen;
+  }
+
+  function setStatus(msg, type) {
+    document.getElementById('statusTxt').textContent = msg;
+    document.getElementById('sdot').className = 'sdot ' + (type || 'idle');
+  }
+
+  let logN = 0;
+  function log(msg, cls) {
+    const area = document.getElementById('logArea');
+    const div  = document.createElement('div');
+    div.className  = 'log-entry ' + (cls || '');
+    div.textContent = '[' + String(stepCount).padStart(3,'0') + '] ' + msg;
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+    if (++logN > 300) { area.removeChild(area.firstChild); logN--; }
+  }
+
+  const AMETA = {
+    astar:  {
+      tag:   'A*',
+      desc:  'Combines g(n)+h(n). Finds optimal path using Manhattan distance. Best choice for this dynamic grid.',
+      props: 'Complete:&nbsp;&nbsp;Yes ✓<br>Optimal:&nbsp;&nbsp;&nbsp;Yes ✓<br>Structure: Priority Queue<br>Heuristic: Manhattan dist<br>Formula:&nbsp;&nbsp;&nbsp;f = g(n) + h(n)'
+    },
+    bfs:    {
+      tag:   'BFS',
+      desc:  'Explores the grid layer by layer. Guarantees the shortest path on any uniform-cost grid.',
+      props: 'Complete:&nbsp;&nbsp;Yes ✓<br>Optimal:&nbsp;&nbsp;&nbsp;Yes ✓<br>Structure: Queue (FIFO)<br>Heuristic: None<br>Expands level by level'
+    },
+    dfs:    {
+      tag:   'DFS',
+      desc:  'Dives deep along one branch before backtracking. Not optimal — can take long detour routes.',
+      props: 'Complete:&nbsp;&nbsp;Yes ✓<br>Optimal:&nbsp;&nbsp;&nbsp;No  ✗<br>Structure: Stack (LIFO)<br>Heuristic: None<br>Explores deepest first'
+    },
+    ucs:    {
+      tag:   'UCS',
+      desc:  'Expands the lowest-cost frontier node. Behaves identically to BFS here (all edges cost 1).',
+      props: 'Complete:&nbsp;&nbsp;Yes ✓<br>Optimal:&nbsp;&nbsp;&nbsp;Yes ✓<br>Structure: Priority Queue<br>Ordered by:&nbsp;g(n)<br>Same as BFS here'
+    },
+    greedy: {
+      tag:   'Greedy',
+      desc:  'Rushes towards the goal using only h(n). Fast, but can miss the optimal route.',
+      props: 'Complete:&nbsp;&nbsp;Yes ✓<br>Optimal:&nbsp;&nbsp;&nbsp;No  ✗<br>Structure: Priority Queue<br>Heuristic: Manhattan dist<br>Ordered by:&nbsp;h(n) only'
+    }
+  };
+
+  document.getElementById('algoSelect').addEventListener('change', function() {
+    const m = AMETA[this.value];
+    document.getElementById('algoNameTag').textContent = m.tag;
+    document.getElementById('algoDesc').textContent    = m.desc;
+    document.getElementById('algoProps').innerHTML     = m.props;
+  });
+
+  function algoLabel(v) {
+    return {astar:'A*', bfs:'BFS', dfs:'DFS', ucs:'UCS', greedy:'Greedy Best-FS'}[v] || v;
+  }
+
+  canvas.addEventListener('click', function(e) {
+    if (running) return;
+    const rect = canvas.getBoundingClientRect();
+    const c = Math.floor((e.clientX - rect.left) / CELL);
+    const r = Math.floor((e.clientY - rect.top)  / CELL);
+    if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+
+    if (clickPhase === 0 || clickPhase === 2) {
+      startPos = {r, c};
+      document.getElementById('startRow').value = r;
+      document.getElementById('startCol').value = c;
+      document.getElementById('clickMode').textContent =
+        'Start at (' + r + ',' + c + '). Now click Goal.';
+      clickPhase = 1;
+      init();
+
+    } else if (clickPhase === 1) {
+      if (r === startPos.r && c === startPos.c) { alert('Goal must differ from Start.'); return; }
+      goalPos = {r, c};
+      document.getElementById('goalRow').value = r;
+      document.getElementById('goalCol').value = c;
+      document.getElementById('clickMode').textContent =
+        'Goal at (' + r + ',' + c + '). Press Start!';
+      clickPhase = 2;
+      init();
+    }
+  });
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  init();
+  updateSpeed();
+  setStatus('Ready — pick an algorithm, set Start & Goal, then press Start.', 'idle');
+  log('Aman Verma | MIS 612303196 | AI Lab Assignment 1', 'info');
+  log('All 5 algorithms ready: A*, BFS, DFS, UCS, Greedy', 'success');
+  log('Click on the grid to place Start and Goal cells.', '');
+  </script>
+  </body>
+  </html>
